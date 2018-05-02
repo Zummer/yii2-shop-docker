@@ -8,7 +8,15 @@ return [
     'components' => [
         'cache' => [
             'class' => 'yii\caching\MemCache',
-            'useMemcached' => true,
+            'useMemcached' => true, // <--- here
+            /* можно не указывать сервер, и тогда будет создан новый 127.0.0.1:11211, он же memcached_server:11211
+             'servers' => [
+                [
+                    'host' => 'memcached_server',
+                    'port' => 11211,
+                ],
+            ],
+            */
         ],
         'db' => [
             'class' => 'yii\db\Connection',

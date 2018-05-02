@@ -92,6 +92,14 @@ services:
       DB_USERNAME: TEST_DB_USERNAME
       DB_PASSWORD: TEST_DB_PASSWORD
 
+  memcached_server:
+    image: memcached:alpine
+
+  phpmemcachedadmin:
+     image: jacksoncage/phpmemcachedadmin
+     ports:
+       - 8093:80
+
 volumes:
   mysql_data:
     external:
