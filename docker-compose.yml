@@ -1,0 +1,98 @@
+version: '2'
+services:
+
+  db:
+    image: mysql:5.7
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/config.cnf:/etc/mysql/conf.d/config.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+
+  phpmyadmin:
+      image: phpmyadmin/phpmyadmin
+      ports:
+        - 8183:80
+      links:
+        - db
+
+  app:
+    build: docker/php
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+    environment:
+      - DB_DSN
+      - DB_USERNAME
+      - DB_PASSWORD
+
+  workspace:
+    build: docker/php
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+    environment:
+      - DB_DSN
+      - DB_USERNAME
+      - DB_PASSWORD
+
+  yii:
+    build: docker/php
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+    entrypoint: ["php", "yii"]
+    environment:
+      - DB_DSN
+      - DB_USERNAME
+      - DB_PASSWORD
+    working_dir: /app
+
+  nginx:
+    image: nginx:1.12-alpine
+    ports:
+      - 80:80
+    volumes:
+      - ./:/app
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/nginx/logs/nginx-error.log:/var/log/nginx/error.log
+      - ./docker/nginx/logs/nginx-access.log:/var/log/nginx/access.log
+    depends_on:
+      - app
+
+  codeception:
+      build: docker/php
+      volumes:
+        - ./:/app
+      depends_on:
+        - db
+      entrypoint: ["vendor/bin/codecept"]
+      working_dir: /app
+      environment:
+        DB_DSN: TEST_DB_DSN
+        DB_USERNAME: TEST_DB_USERNAME
+        DB_PASSWORD: TEST_DB_PASSWORD
+
+  yii_test:
+    build: docker/php
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+    entrypoint: ["php", "yii_test"]
+    working_dir: /app
+    environment:
+      DB_DSN: TEST_DB_DSN
+      DB_USERNAME: TEST_DB_USERNAME
+      DB_PASSWORD: TEST_DB_PASSWORD
+
+volumes:
+  mysql_data:
+    external:
+      name: shop_mysql_data
