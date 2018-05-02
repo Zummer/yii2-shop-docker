@@ -27,6 +27,10 @@ RUN apt-get purge -y g++ \
     && sh /install-composer.sh \
     && rm /install-composer.sh
 
+RUN apt-get update && apt-get install -y libz-dev libmemcached-dev && \
+    pecl install memcached && \
+    docker-php-ext-enable memcached
+
 RUN usermod -u 1000 www-data
 
 VOLUME /root/.composer
