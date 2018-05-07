@@ -26,6 +26,8 @@ services:
     depends_on:
       - db
     environment:
+#      - XDEBUG_CONFIG=remote_host=127.0.0.1 remote_port=9001 remote_connect_back=0 idekey=PHPSTORM
+      - PHP_IDE_CONFIG=serverName=docker
       - DB_DSN
       - DB_USERNAME
       - DB_PASSWORD
