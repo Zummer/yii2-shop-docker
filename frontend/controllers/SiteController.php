@@ -1,5 +1,4 @@
 <?php
-
 namespace frontend\controllers;
 
 use frontend\services\auth\PasswordResetService;
@@ -162,7 +161,6 @@ class SiteController extends Controller
             } catch (\DomainException $e) {
                 Yii::$app->session->setFlash('error', $e->getMessage());
             }
-
         }
 
         return $this->render('signup', [
