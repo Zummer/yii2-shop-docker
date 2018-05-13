@@ -1,8 +1,10 @@
 <?php
+
 namespace frontend\controllers;
 
 use frontend\services\auth\PasswordResetService;
 use frontend\services\auth\SignupService;
+use frontend\services\contact\ContactService;
 use Yii;
 use yii\base\Module;
 use yii\web\BadRequestHttpException;
@@ -21,18 +23,27 @@ use frontend\forms\ContactForm;
 class SiteController extends Controller
 {
     private $passwordResetService;
+    private $contactService;
 
     /**
      * SiteController constructor.
      * @param string $id
      * @param Module $module
      * @param PasswordResetService $passwordResetService
+     * @param ContactService $contactService
      * @param array $config
      */
-    public function __construct(string $id, Module $module, PasswordResetService $passwordResetService, array $config = [])
+    public function __construct(
+        string $id,
+        Module $module,
+        PasswordResetService $passwordResetService,
+        ContactService $contactService,
+        array $config = []
+    )
     {
         parent::__construct($id, $module, $config);
         $this->passwordResetService = $passwordResetService;
+        $this->contactService = $contactService;
     }
 
     /**
@@ -134,20 +145,22 @@ class SiteController extends Controller
      */
     public function actionContact()
     {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            if ($model->sendEmail(Yii::$app->params['adminEmail'])) {
+        $form = new ContactForm();
+        if ($form->load(Yii::$app->request->post()) && $form->validate()) {
+            try {
+                $this->contactService->send($form);
                 Yii::$app->session->setFlash('success', 'Thank you for contacting us. We will respond to you as soon as possible.');
-            } else {
+            } catch (\Exception $e) {
+                Yii::$app->errorHandler->logException($e);
                 Yii::$app->session->setFlash('error', 'There was an error sending your message.');
             }
 
             return $this->refresh();
-        } else {
-            return $this->render('contact', [
-                'model' => $model,
-            ]);
         }
+
+        return $this->render('contact', [
+            'model' => $form,
+        ]);
     }
 
     /**
