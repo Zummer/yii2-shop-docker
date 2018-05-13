@@ -22,6 +22,7 @@ use frontend\forms\ContactForm;
  */
 class SiteController extends Controller
 {
+    private $signupService;
     private $passwordResetService;
     private $contactService;
 
@@ -31,6 +32,7 @@ class SiteController extends Controller
      * @param Module $module
      * @param PasswordResetService $passwordResetService
      * @param ContactService $contactService
+     * @param SignupService $signupService
      * @param array $config
      */
     public function __construct(
@@ -38,12 +40,14 @@ class SiteController extends Controller
         Module $module,
         PasswordResetService $passwordResetService,
         ContactService $contactService,
+        SignupService $signupService,
         array $config = []
     )
     {
         parent::__construct($id, $module, $config);
         $this->passwordResetService = $passwordResetService;
         $this->contactService = $contactService;
+        $this->signupService = $signupService;
     }
 
     /**
@@ -183,11 +187,11 @@ class SiteController extends Controller
         $form = new SignupForm();
         if ($form->load(Yii::$app->request->post()) && $form->validate()) {
             try {
-                $user = (new SignupService())->signup($form);
-                if (Yii::$app->getUser()->login($user)) {
-                    return $this->goHome();
-                }
+                $this->signupService->signup($form);
+                Yii::$app->session->setFlash('success', 'Check your email for further instructions.');
+                return $this->goHome();
             } catch (\DomainException $e) {
+                Yii::$app->errorHandler->logException($e);
                 Yii::$app->session->setFlash('error', $e->getMessage());
             }
         }
@@ -195,6 +199,19 @@ class SiteController extends Controller
         return $this->render('signup', [
             'model' => $form,
         ]);
+    }
+
+    public function actionConfirm($token)
+    {
+        try {
+            $this->signupService->confirm($token);
+            Yii::$app->session->setFlash('success', 'Your email is confirmed.');
+            return $this->redirect(['login']);
+        } catch (\DomainException $e) {
+            Yii::$app->errorHandler->logException($e);
+            Yii::$app->session->setFlash('error', $e->getMessage());
+            return $this->goHome();
+        }
     }
 
     /**

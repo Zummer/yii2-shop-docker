@@ -3,6 +3,7 @@ namespace frontend\services\contact;
 
 use Yii;
 use frontend\forms\ContactForm;
+use yii\mail\MailerInterface;
 
 class ContactService
 {
