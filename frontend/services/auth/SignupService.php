@@ -3,25 +3,28 @@
 namespace frontend\services\auth;
 
 use common\entities\User;
+use common\repositories\UserRepository;
 use frontend\forms\SignupForm;
 use yii\mail\MailerInterface;
 
 class SignupService
 {
     private $mailer;
+    private $users;
 
-    public function __construct(MailerInterface $mailer)
+    public function __construct(MailerInterface $mailer, UserRepository $users)
     {
         $this->mailer = $mailer;
+        $this->users = $users;
     }
 
     public function signup(SignupForm $form): void
     {
-        if (User::find()->andWhere(['username' => $form->username])->one()) {
+        if ($this->users->existsByUsername($form->username)) {
             throw new \DomainException('This username has already been taken.');
         }
 
-        if (User::find()->andWhere(['email' => $form->email])->one()) {
+        if ($this->users->existsByEmail($form->email)) {
             throw new \DomainException('This email has already been taken.');
         }
 
@@ -31,9 +34,7 @@ class SignupService
             $form->password
         );
 
-        if(!$user->save()) {
-            throw new \RuntimeException('Saving error.');
-        }
+        $this->users->save($user);
 
         $sent = $this->mailer
             ->compose(
@@ -43,29 +44,21 @@ class SignupService
             ->setTo($form->email)
             ->setSubject('Signup confirm for ' . \Yii::$app->name)
             ->send();
+
         if (!$sent) {
             throw new \RuntimeException('Email sending error.');
         }
 
     }
 
-    public function confirm(string $token)
+    public function confirm(string $token): void
     {
         if (empty($token)) {
             throw new \DomainException('Empty confirm token.');
         }
 
-        /* @var $user User */
-        $user = User::findOne(['email_confirm_token' => $token]);
-
-        if (!$user) {
-            throw new \DomainException('User is not found.');
-        }
-
+        $user = $this->users->getByEmailConfirmToken($token);
         $user->confirmSignup();
-
-        if (!$user->save()) {
-            throw new \RuntimeException('Saving error.');
-        }
+        $this->users->save($user);
     }
 }
