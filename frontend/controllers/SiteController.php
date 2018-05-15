@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\services\AuthService;
 use frontend\services\auth\PasswordResetService;
 use frontend\services\auth\SignupService;
 use frontend\services\contact\ContactService;
@@ -25,11 +26,13 @@ class SiteController extends Controller
     private $signupService;
     private $passwordResetService;
     private $contactService;
+    private $authService;
 
     /**
      * SiteController constructor.
      * @param string $id
      * @param Module $module
+     * @param AuthService $authService
      * @param PasswordResetService $passwordResetService
      * @param ContactService $contactService
      * @param SignupService $signupService
@@ -38,6 +41,7 @@ class SiteController extends Controller
     public function __construct(
         string $id,
         Module $module,
+        AuthService $authService,
         PasswordResetService $passwordResetService,
         ContactService $contactService,
         SignupService $signupService,
@@ -48,6 +52,7 @@ class SiteController extends Controller
         $this->passwordResetService = $passwordResetService;
         $this->contactService = $contactService;
         $this->signupService = $signupService;
+        $this->authService = $authService;
     }
 
     /**
@@ -118,16 +123,21 @@ class SiteController extends Controller
             return $this->goHome();
         }
 
-        $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
-        } else {
-            $model->password = '';
+        $form = new LoginForm();
 
-            return $this->render('login', [
-                'model' => $model,
-            ]);
+        if ($form->load(Yii::$app->request->post()) && $form->validate()) {
+            try {
+                $user = $this->authService->auth($form);
+                Yii::$app->user->login($user, $form->rememberMe ? 3600 * 24 * 30 : 0);
+                return $this->goBack();
+            } catch (\DomainException $e) {
+                Yii::$app->session->setFlash('error', $e->getMessage());
+            }
         }
+
+        return $this->render('login', [
+            'model' => $form,
+        ]);
     }
 
     /**

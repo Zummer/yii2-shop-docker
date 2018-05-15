@@ -1,7 +1,9 @@
 <?php
 namespace backend\controllers;
 
+use common\services\AuthService;
 use Yii;
+use yii\base\Module;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use common\forms\LoginForm;
@@ -11,6 +13,21 @@ use common\forms\LoginForm;
  */
 class SiteController extends Controller
 {
+    private $authService;
+
+    /**
+     * SiteController constructor.
+     * @param string $id
+     * @param Module $module
+     * @param AuthService $authService
+     * @param array $config
+     */
+    public function __construct(string $id, Module $module, AuthService $authService, $config = [])
+    {
+        parent::__construct($id, $module, $config);
+        $this->authService = $authService;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -61,16 +78,22 @@ class SiteController extends Controller
 
         $this->layout = 'main-login';
 
-        $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
-        } else {
-            $model->password = '';
+        $form = new LoginForm();
 
-            return $this->render('login', [
-                'model' => $model,
-            ]);
+        if ($form->load(Yii::$app->request->post()) && $form->validate()) {
+            try {
+                $user = $this->authService->auth($form);
+                Yii::$app->user->login($user, $form->rememberMe ? 3600 * 24 * 30 : 0);
+                return $this->goBack();
+            } catch (\DomainException $e) {
+                Yii::$app->session->setFlash('error', $e->getMessage());
+            }
         }
+
+        return $this->render('login', [
+            'model' => $form,
+        ]);
+
     }
 
     /**
