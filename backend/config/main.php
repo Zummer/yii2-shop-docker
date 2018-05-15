@@ -10,7 +10,10 @@ return [
     'id' => 'app-backend',
     'basePath' => dirname(__DIR__),
     'controllerNamespace' => 'backend\controllers',
-    'bootstrap' => ['log'],
+    'bootstrap' => [
+        'log',
+        'common\bootstrap\SetUp'
+    ],
     'modules' => [],
     'components' => [
         'request' => [
@@ -25,10 +28,10 @@ return [
                 'httpOnly' => true,
                 'domain' => $params['cookieDomain'],
             ],
+            'loginUrl' => ['auth/login'],
         ],
         'session' => [
-            // this is the name of the session cookie used for login on the backend
-            'name' => 'advanced',
+            'name' => '_session',
             'cookieParams' => [
                 'domain' => $params['cookieDomain'],
                 'httpOnly' => true,
@@ -54,7 +57,7 @@ return [
     ],
     'as access' => [
         'class' => 'yii\filters\AccessControl',
-        'except' => ['site/login', 'site/error'],
+        'except' => ['auth/login', 'site/error'],
         'rules' => [
             [
                 'allow' => true,
