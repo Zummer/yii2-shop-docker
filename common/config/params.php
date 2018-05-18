@@ -1,8 +1,9 @@
 <?php
 return [
-    'adminEmail' => 'admin@example.com',
+    'adminEmail' => 'admin@shop.localhost',
     'user.passwordResetTokenExpire' => 3600,
-    'cookieDomain' => '.example.com',
-    'frontendHostInfo' => 'http://example.com',
-    'backendHostInfo' => 'http://backend.example.com',
+    'user.rememberMeDuration' => 3600 * 24 * 30,
+    'cookieDomain' => '.shop.localhost',
+    'frontendHostInfo' => 'http://shop.localhost',
+    'backendHostInfo' => 'http://backend.shop.localhost',
 ];
