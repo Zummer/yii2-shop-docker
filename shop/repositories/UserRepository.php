@@ -6,6 +6,11 @@ use shop\entities\User\User;
 
 class UserRepository
 {
+    public function get($id): User
+    {
+        return $this->getBy(['id' => $id]);
+    }
+
     public function findByNetworkIdentity($network, $identity): ?User
     {
         return User::find()->joinWith('networks n')->andWhere(['n.network' => $network, 'n.identity' => $identity])->one();
