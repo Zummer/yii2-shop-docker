@@ -4,10 +4,9 @@ namespace frontend\controllers\auth;
 use shop\forms\auth\SignupForm;
 use Yii;
 use shop\services\auth\SignupService;
-use yii\base\Controller;
+use yii\web\Controller;
 use yii\base\Module;
 use yii\filters\AccessControl;
-use yii\filters\VerbFilter;
 
 class SignupController extends Controller
 {
@@ -68,7 +67,7 @@ class SignupController extends Controller
         try {
             $this->signupService->confirm($token);
             Yii::$app->session->setFlash('success', 'Your email is confirmed.');
-            return $this->redirect(['login']);
+            return $this->redirect(['/login']);
         } catch (\DomainException $e) {
             Yii::$app->errorHandler->logException($e);
             Yii::$app->session->setFlash('error', $e->getMessage());
