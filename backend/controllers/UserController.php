@@ -2,9 +2,12 @@
 
 namespace backend\controllers;
 
+use shop\forms\manage\User\UserCreateForm;
+use shop\services\manage\UserManageService;
 use Yii;
 use shop\entities\User\User;
 use backend\forms\UserSearch;
+use yii\base\Module;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -14,6 +17,14 @@ use yii\filters\VerbFilter;
  */
 class UserController extends Controller
 {
+    private $userManageService;
+
+    public function __construct(string $id, Module $module, UserManageService $userManageService, array $config = [])
+    {
+        parent::__construct($id, $module, $config);
+        $this->userManageService = $userManageService;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -64,14 +75,20 @@ class UserController extends Controller
      */
     public function actionCreate()
     {
-        $model = new User();
+        $form = new UserCreateForm();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if ($form->load(Yii::$app->request->post()) && $form->validate()) {
+            try {
+                $user = $this->userManageService->create($form);
+                return $this->redirect(['view', 'id' => $user->id]);
+            } catch (\DomainException $e) {
+                Yii::$app->errorHandler->logException($e);
+                Yii::$app->session->setFlash('error', $e->getMessage());
+            }
         }
 
         return $this->render('create', [
-            'model' => $model,
+            'model' => $form,
         ]);
     }
 
