@@ -4,6 +4,8 @@ use yii\helpers\Html;
 use yii\grid\GridView;
 use \yii\grid\ActionColumn;
 use \yii\grid\SerialColumn;
+use shop\entities\User\User;
+use shop\helpers\UserHelper;
 
 /* @var $this yii\web\View */
 /* @var $searchModel backend\forms\UserSearch */
@@ -14,7 +16,6 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="user-index">
 
-    <h1><?= Html::encode($this->title) ?></h1>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <p>
@@ -30,9 +31,22 @@ $this->params['breadcrumbs'][] = $this->title;
                     ['class' => SerialColumn::class],
                     'id',
                     'created_at:datetime',
-                    'username',
+                    [
+                        'attribute' => 'username',
+                        'value' => function (User $model) {
+                            return Html::a(Html::encode($model->username), ['view', 'id' => $model->id]);
+                        },
+                        'format' => 'raw',
+                    ],
                     'email:email',
-                    'status',
+                    [
+                        'attribute' => 'status',
+                        'filter' => UserHelper::statusList(),
+                        'value' => function (User $user) {
+                            return UserHelper::statusLabel($user->status);
+                        },
+                        'format' => 'raw',
+                    ],
                     ['class' => ActionColumn::class],
                 ],
             ]); ?>
