@@ -6,6 +6,13 @@ use shop\entities\User\User;
 
 class UserRepository
 {
+    public function remove(User $user): void
+    {
+        if (!$user->delete()) {
+            throw new \RuntimeException('Removing error.');
+        }
+    }
+
     public function get($id): User
     {
         return $this->getBy(['id' => $id]);

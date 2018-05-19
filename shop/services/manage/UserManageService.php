@@ -28,10 +28,16 @@ class UserManageService
         return $user;
     }
 
-    public function edit(string $id, UserEditForm $form)
+    public function edit(string $id, UserEditForm $form): void
     {
         $user = $this->repository->get($id);
         $user->edit($form->username, $form->email);
         $this->repository->save($user);
+    }
+
+    public function remove(string $id): void
+    {
+        $user = $this->repository->get($id);
+        $this->repository->remove($user);
     }
 }
