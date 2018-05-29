@@ -61,7 +61,7 @@
                         ],
                     ],
                     ['label' => 'Management', 'options' => ['class' => 'header']],
-                    ['label' => 'Users', 'icon' => 'user', 'url' => ['/user/index'], 'active' => $this->context->id == 'user' && $this->context->action->id == 'index'],
+                    ['label' => 'Users', 'icon' => 'user', 'url' => ['/user/index'], 'active' => $this->context->id == 'user'],
                 ],
             ]
         ) ?>
