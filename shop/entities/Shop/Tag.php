@@ -10,7 +10,7 @@ use yii\db\ActiveRecord;
  */
 class Tag extends ActiveRecord
 {
-    public static function create($name, $slug)
+    public static function create($name, $slug): self
     {
         $tag = new static();
         $tag->name = $name;
@@ -19,13 +19,13 @@ class Tag extends ActiveRecord
         return $tag;
     }
 
-    public function edit($name, $slug)
+    public function edit($name, $slug): void
     {
         $this->name = $name;
         $this->slug = $slug;
     }
 
-    public static function tableName()
+    public static function tableName(): string
     {
         return '{{%shop_tags}}';
     }
