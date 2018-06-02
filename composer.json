@@ -24,7 +24,8 @@
         "la-haute-societe/yii2-save-relations-behavior": "dev-master",
         "yiisoft/yii2-authclient": "^2.0@dev",
         "kartik-v/yii2-widgets": "dev-master",
-        "kartik-v/yii2-field-range": "^1.3@dev"
+        "kartik-v/yii2-field-range": "^1.3@dev",
+        "paulzi/yii2-nested-sets": "dev-master"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",
