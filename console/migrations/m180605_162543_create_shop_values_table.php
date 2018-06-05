@@ -2,7 +2,7 @@
 
 use yii\db\Migration;
 
-class m170519_183925_create_shop_values_table extends Migration
+class m180605_162543_create_shop_values_table extends Migration
 {
     public function up()
     {
