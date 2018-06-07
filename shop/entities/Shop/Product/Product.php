@@ -26,6 +26,7 @@ use yii\web\UploadedFile;
  * @property Brand $brand
  * @property Category $category
  * @property CategoryAssignment[] $categoryAssignments
+ * @property TagAssignment[] $tagAssignments
  * @property Value[] $values
  * @property Photo[] $photos
  */
@@ -59,13 +60,16 @@ class Product extends ActiveRecord
     public function setValue($id, $value): void
     {
         $values = $this->values;
+
         foreach ($values as $val) {
             if ($val->isForCharacteristic($id)) {
                 $val->change($value);
                 $this->values = $values;
+
                 return;
             }
         }
+
         $values[] = Value::create($id, $value);
         $this->values = $values;
     }
@@ -73,11 +77,13 @@ class Product extends ActiveRecord
     public function getValue($id): Value
     {
         $values = $this->values;
+
         foreach ($values as $val) {
             if ($val->isForCharacteristic($id)) {
                 return $val;
             }
         }
+
         return Value::blank($id);
     }
 
@@ -116,6 +122,41 @@ class Product extends ActiveRecord
         $this->categoryAssignments = [];
     }
 
+    public function assignTag($id): void
+    {
+        $assignments = $this->tagAssignments;
+
+        foreach ($assignments as $assignment) {
+            if ($assignment->isForTag($id)) {
+                return;
+            }
+        }
+
+        $assignments[] = TagAssignment::create($id);
+        $this->tagAssignments = $assignments;
+    }
+
+    public function revokeTag($id): void
+    {
+        $assignments = $this->tagAssignments;
+
+        foreach ($assignments as $i => $assignment) {
+            if ($assignment->isForTag($id)) {
+                unset($assignments[$i]);
+                $this->tagAssignments = $assignments;
+
+                return;
+            }
+        }
+
+        throw new \DomainException('Assignment is not found.');
+    }
+
+    public function revokeTags(): void
+    {
+        $this->tagAssignments = [];
+    }
+
     public function addPhoto(UploadedFile $file): void
     {
         $photos = $this->photos;
@@ -126,13 +167,16 @@ class Product extends ActiveRecord
     public function removePhoto($id): void
     {
         $photos = $this->photos;
+
         foreach ($photos as $i => $photo) {
             if ($photo->isIdEqualTo($id)) {
                 unset($photos[$i]);
                 $this->updatePhotos($photos);
+
                 return;
             }
         }
+
         throw new \DomainException('Photo is not found.');
     }
 
@@ -144,6 +188,7 @@ class Product extends ActiveRecord
     public function movePhotoUp($id): void
     {
         $photos = $this->photos;
+
         foreach ($photos as $i => $photo) {
             if ($photo->isIdEqualTo($id)) {
                 if ($prev = $photos[$i - 1] ?? null) {
@@ -151,15 +196,18 @@ class Product extends ActiveRecord
                     $photos[$i] = $prev;
                     $this->updatePhotos($photos);
                 }
+
                 return;
             }
         }
+
         throw new \DomainException('Photo is not found.');
     }
 
     public function movePhotoDown($id): void
     {
         $photos = $this->photos;
+
         foreach ($photos as $i => $photo) {
             if ($photo->isIdEqualTo($id)) {
                 if ($next = $photos[$i + 1] ?? null) {
@@ -167,9 +215,11 @@ class Product extends ActiveRecord
                     $photos[$i + 1] = $photo;
                     $this->updatePhotos($photos);
                 }
+
                 return;
             }
         }
+
         throw new \DomainException('Photo is not found.');
     }
 
@@ -196,6 +246,11 @@ class Product extends ActiveRecord
         return $this->hasMany(CategoryAssignment::class, ['product_id' => 'id']);
     }
 
+    public function getTagAssignments(): ActiveQuery
+    {
+        return $this->hasMany(TagAssignment::class, ['product_id' => 'id']);
+    }
+
     public function getValues(): ActiveQuery
     {
         return $this->hasMany(Value::class, ['product_id' => 'id']);
@@ -217,7 +272,7 @@ class Product extends ActiveRecord
             MetaBehavior::class,
             [
                 'class' => SaveRelationsBehavior::class,
-                'relations' => ['categoryAssignments', 'values', 'photos'],
+                'relations' => ['categoryAssignments', 'tagAssignments', 'values', 'photos'],
             ],
         ];
     }
